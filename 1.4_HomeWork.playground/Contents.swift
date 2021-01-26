@@ -262,3 +262,120 @@ string.summ()
  8. Напишите, в чём основная идея Protocol Oriented Programming.
  Основная идея Protocol Oriented Programming заключается в повышении переиспользования кода, в лучшем структурировании код, в уменьшении дублирования кода.
  */
+
+//--------------------------------------------------------------------------------------
+//Дополнительные задания:
+/*
+1. Можно ли ограничить протокол только для классов?
+Да, можно:
+ */
+protocol OnlyClass: class {
+    func testFunc()
+}
+
+class TestClass: OnlyClass {
+    func testFunc() {
+        //....
+    }
+}
+
+//2. Можно ли создать опциональные функции (необязательные к реализации) у протоколов?
+// Можно, НО с обязательным указанием атрибута @objc и подобные протоколы могут приниматься только классами
+@objc protocol OptionalType {
+    @objc optional func testFunc()
+}
+class OptionalStruct: OptionalType {
+}
+
+//3. Можно ли в extension создавать хранимые свойства (stored property)?
+// Нет, нельзя, только вычисляемые свойства
+// Обойти данное ограничение можно таким образом:
+extension Int {
+    static var storedProperty = 100
+}
+
+//4. Можно ли в extension объявлять вложенные типы, а именно: классы/структуры/перечисления/протоколы.
+// Можно кроме протоколов:
+extension TestClass{
+    
+    class nestedClass {
+        //...
+    }
+    
+    struct nestedStruct {
+        //...
+    }
+    
+    enum nestedEnum {
+        case a
+    }
+    
+}
+
+//5. Можно ли в extension класса/структуры/перечисления реализовать соответствие протоколу?
+// Да, можно:
+class ForExtensionClass{
+}
+
+struct ForExtensionStruct{
+}
+
+enum ForExtensionEnum {
+}
+
+protocol ForExtension{
+    func testFunc()
+}
+
+extension ForExtensionClass: ForExtension{
+    func testFunc() {
+        //...
+    }
+}
+
+extension ForExtensionStruct: ForExtension{
+    func testFunc() {
+        //...
+    }
+}
+
+extension ForExtensionEnum: ForExtension{
+    func testFunc() {
+        //...
+    }
+}
+
+//6. Можно ли в протоколе объявить инициализатор?
+//Да, можно:
+protocol InitProtocol {
+    init(name: Int)
+}
+
+//А в extension добавить новый инициализатор для класса/структуры/перечисления/протокола?
+//Нет, нельзя
+
+//7. Как в протоколе объявить readonly свойство?
+protocol ReadonlyName {
+    var name: String { get }
+}
+
+//Можно ли его реализовать в классе/структуре/перечислении с помощью let?
+//Любая переменная объявленая оператором let будет иметь свойство только для чтения
+
+//8. Поддерживают ли протоколы множественное наследование?
+//Да:
+protocol MultipleInheritance: InitProtocol, ReadonlyName, ForExtensionClass{
+}
+
+//9. Можно ли создать протокол, реализовать который могут только определенные классы/структуры/перечисления?
+// Предположу что нельзя, не смог найти информацию по этому поводу
+
+
+//10. Можно ли определить тип, который реализует одновременно несколько несвязанных между собой протоколов?
+// Да:
+protocol ProtocolOne{
+}
+protocol ProtocolTwo{
+}
+struct AnyStruct: ProtocolOne, ProtocolTwo{
+}
