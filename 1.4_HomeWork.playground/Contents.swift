@@ -279,6 +279,16 @@ class TestClass: OnlyClass {
     }
 }
 
+protocol OnlyClass1: AnyObject {
+    func testFunc()
+}
+
+class TestClass1: OnlyClass1 {
+    func testFunc() {
+        //....
+    }
+}
+
 //2. Можно ли создать опциональные функции (необязательные к реализации) у протоколов?
 // Можно, НО с обязательным указанием атрибута @objc и подобные протоколы могут приниматься только классами
 @objc protocol OptionalType {
@@ -286,27 +296,32 @@ class TestClass: OnlyClass {
 }
 class OptionalStruct: OptionalType {
 }
+//А какой еще способ есть чисто для swift протоколов?
+//Затрудняюсь ответить, гугл то же ((
+
 
 //3. Можно ли в extension создавать хранимые свойства (stored property)?
 // Нет, нельзя, только вычисляемые свойства
-// Обойти данное ограничение можно таким образом:
-extension Int {
-    static var storedProperty = 100
-}
+
+//Хотелось бы хранимое свойство-экземпляра.
+//Можно ли? А обойти?
+
+//Обойти можно с использованием методов objc_getAssociatedObject и objc_setAssociatedObject.
+
 
 //4. Можно ли в extension объявлять вложенные типы, а именно: классы/структуры/перечисления/протоколы.
 // Можно кроме протоколов:
 extension TestClass{
     
-    class nestedClass {
+    class NestedClass {
         //...
     }
     
-    struct nestedStruct {
+    struct NestedStruct {
         //...
     }
     
-    enum nestedEnum {
+    enum NestedEnum {
         case a
     }
     
@@ -315,9 +330,17 @@ extension TestClass{
 //5. Можно ли в extension класса/структуры/перечисления реализовать соответствие протоколу?
 // Да, можно:
 class ForExtensionClass{
+    var name: String
+    var age: Int
+    init(name: String, age: Int) {
+        self.name = name
+        self.age = age
+    }
 }
 
 struct ForExtensionStruct{
+    var name: String
+    var age: Int
 }
 
 enum ForExtensionEnum {
@@ -354,6 +377,15 @@ protocol InitProtocol {
 //А в extension добавить новый инициализатор для класса/структуры/перечисления/протокола?
 //Нет, нельзя
 
+//Для классов может получится?
+//Да, действительно:
+extension ForExtensionClass {
+    convenience init(name: String, newAge: Int) {
+        self.init(name: name, age: newAge)
+    }
+}
+
+
 //7. Как в протоколе объявить readonly свойство?
 protocol ReadonlyName {
     var name: String { get }
@@ -361,6 +393,17 @@ protocol ReadonlyName {
 
 //Можно ли его реализовать в классе/структуре/перечислении с помощью let?
 //Любая переменная объявленая оператором let будет иметь свойство только для чтения
+//Пример
+//Только в классах и в структурах, в перечислениях var и let не используются
+class ReadonlyNameClass {
+    let name : String = "Vadim"
+}
+struct ReadonlyNameStruct {
+    let name : String = "Vadim"
+}
+
+//Реализовать протокол со свойством в виде let
+//Это невозможно, в протоколах испоьзвуют только var
 
 //8. Поддерживают ли протоколы множественное наследование?
 //Да:
@@ -369,7 +412,11 @@ protocol MultipleInheritance: InitProtocol, ReadonlyName, ForExtensionClass{
 
 //9. Можно ли создать протокол, реализовать который могут только определенные классы/структуры/перечисления?
 // Предположу что нельзя, не смог найти информацию по этому поводу
+class SomeClass {}
+protocol Some: SomeClass {}
 
+//Эксперименты в Xcode помогают ответить на многие вопросы.
+//Согласен, всегда экспереминтирую, но невсегда удается найти верное решение ))
 
 //10. Можно ли определить тип, который реализует одновременно несколько несвязанных между собой протоколов?
 // Да:
@@ -379,3 +426,8 @@ protocol ProtocolTwo{
 }
 struct AnyStruct: ProtocolOne, ProtocolTwo{
 }
+
+//А так?
+//И так можно:
+typealias manyProtocol = ProtocolOne & ProtocolTwo
+struct AnyStructTwo : manyProtocol{}
