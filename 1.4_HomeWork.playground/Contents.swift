@@ -299,6 +299,16 @@ class OptionalStruct: OptionalType {
 //А какой еще способ есть чисто для swift протоколов?
 //Затрудняюсь ответить, гугл то же ((
 
+//Предоставить реализацию по умолчанию.
+protocol A {
+    func a()
+}
+
+extension A {
+    func a() {}
+}
+
+//Да, Никита об этом говорил в видеоуроках, я думал о такой реализации, но почему-то привязался к тому, что опциональная функция должна иметь обязательный клучевое слово optional
 
 //3. Можно ли в extension создавать хранимые свойства (stored property)?
 // Нет, нельзя, только вычисляемые свойства
@@ -308,6 +318,52 @@ class OptionalStruct: OptionalType {
 
 //Обойти можно с использованием методов objc_getAssociatedObject и objc_setAssociatedObject.
 
+//Реализуете?:
+//Я нашел в интернете реалиацию, но мне в некторых местах сложно понять что проихсодит ))
+//В частности не понятно в данные методах: key: UnsafeRawPointer
+//key: UnsafeRawPointer что оно значит, что сюда необходимо подставить?
+//Что пишут в интернете: key: UnsafeRawPointer!: Указатель, который является ключом, связанным с объектом для сохранения.
+//Но мне это ни чего не говорит ((
+//Так же не понятно: OBJC_ASSOCIATION_RETAIN_NONATOMIC
+//В интернете пишут OBJC_ASSOCIATION_RETAIN_NONATOMIC: Он сохраняет объект не атомарно с сильной ссылкой
+//Так же мне ни чего это не говорит (( не понимаю
+struct AssociatedKeys {
+    static var toggleState: UInt8 = 0
+}
+
+protocol ToggleProtocol {
+    func toggle()
+}
+
+enum ToggleState {
+    case on
+    case off
+}
+
+extension UIButton: ToggleProtocol {
+
+    private(set) var toggleState: ToggleState {
+        get {
+            guard let value = objc_getAssociatedObject(self, &AssociatedKeys.toggleState) as? ToggleState else {
+                return .off
+            }
+            return value
+        }
+        set(newValue) {
+            objc_setAssociatedObject(self, &AssociatedKeys.toggleState, newValue, objc_AssociationPolicy.OBJC_ASSOCIATION_RETAIN_NONATOMIC)
+        }
+    }
+
+    func toggle() {
+        toggleState = toggleState == .on ? .off : .on
+
+        if toggleState == .on {
+            // Shows background for status on
+        } else {
+            // Shows background for status off
+        }
+    }
+}
 
 //4. Можно ли в extension объявлять вложенные типы, а именно: классы/структуры/перечисления/протоколы.
 // Можно кроме протоколов:
@@ -330,8 +386,8 @@ extension TestClass{
 //5. Можно ли в extension класса/структуры/перечисления реализовать соответствие протоколу?
 // Да, можно:
 class ForExtensionClass{
-    var name: String
-    var age: Int
+    let name: String
+    let age: Int
     init(name: String, age: Int) {
         self.name = name
         self.age = age
@@ -339,8 +395,8 @@ class ForExtensionClass{
 }
 
 struct ForExtensionStruct{
-    var name: String
-    var age: Int
+    let name: String
+    let age: Int
 }
 
 enum ForExtensionEnum {
@@ -385,6 +441,15 @@ extension ForExtensionClass {
     }
 }
 
+//Ну а для структур?
+//Да:
+extension ForExtensionStruct {
+    init(name: String, newAge: Int) {
+        self.init(name: name, age: newAge)
+    }
+}
+// А для перечислений?
+//Насколько я понимаю в перечислениях не используются инициализаторы
 
 //7. Как в протоколе объявить readonly свойство?
 protocol ReadonlyName {
@@ -404,6 +469,15 @@ struct ReadonlyNameStruct {
 
 //Реализовать протокол со свойством в виде let
 //Это невозможно, в протоколах испоьзвуют только var
+
+class ReadonlyClass: ReadonlyName {
+    let name: String
+
+    init(name: String) { self.name = name }
+}
+//Так можно?
+//Вопрос стоял возможно ли реализовать протокол со свойством в виде let, в вашем приведенном примере указана реализация класса с требованием протокола
+//или я что-то не допонимаю )))
 
 //8. Поддерживают ли протоколы множественное наследование?
 //Да:
