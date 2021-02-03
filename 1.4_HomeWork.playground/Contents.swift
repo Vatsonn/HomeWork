@@ -400,6 +400,7 @@ struct ForExtensionStruct{
 }
 
 enum ForExtensionEnum {
+    case name
 }
 
 protocol ForExtension{
@@ -450,7 +451,15 @@ extension ForExtensionStruct {
 }
 // А для перечислений?
 //Насколько я понимаю в перечислениях не используются инициализаторы
+//Попробуете проверить?
+//Да, действительно:
+extension ForExtensionEnum{
+    init(newName: ForExtensionEnum) {
+        .name = newName
+    }
+}
 
+    
 //7. Как в протоколе объявить readonly свойство?
 protocol ReadonlyName {
     var name: String { get }
